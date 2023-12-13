@@ -73,7 +73,7 @@ fun OrderPage(dataManager: DataManager) {
                         value = "",
                         onValueChange = {/* TODO */ },
                         label = { Text("Name for order", color = Alternative1) },
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(24.dp),
                         colors = TextFieldDefaults.outlinedTextFieldColors(
                             focusedBorderColor = Alternative1,
                             unfocusedBorderColor = Alternative1
