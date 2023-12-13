@@ -9,7 +9,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-class DataManager: ViewModel() {
+class DataManager : ViewModel() {
     var menu: List<Category> by mutableStateOf(listOf())
     var cart: List<ItemInCart> by mutableStateOf(listOf())
 
@@ -25,12 +25,32 @@ class DataManager: ViewModel() {
     }
 
     fun cartAdd(product: Product) {
-        //TODO: Falta verificar si el producto ya está en el carrito y sumarle uno
-        cart = cart + ItemInCart(product, 1)
+        val existingItem = cart.find { it.product == product }
+        if (existingItem != null) {
+            val updatedCart = cart.toMutableList().apply {
+                val index = indexOf(existingItem)
+                this[index] = existingItem.copy(quantity = existingItem.quantity + 1)
+            }
+            cart = updatedCart
+        } else {
+            cart = cart + ItemInCart(product, 1)
+        }
         println(cart)
     }
 
     fun cartRemove(product: Product) {
-        //TODO
+        val existingItem = cart.find { it.product == product }
+        if (existingItem != null) {
+            if (existingItem.quantity > 1) {
+                val updatedCart = cart.toMutableList().apply {
+                    val index = indexOf(existingItem)
+                    this[index] = existingItem.copy(quantity = existingItem.quantity - 1)
+                }
+                cart = updatedCart
+            } else {
+                cart = cart - existingItem
+            }
+        }
     }
+
 }

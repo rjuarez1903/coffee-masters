@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.itmaster.mobile.coffeemasters.data.DataManager
+import app.itmaster.mobile.coffeemasters.data.Product
 import app.itmaster.mobile.coffeemasters.ui.theme.Alternative1
 import app.itmaster.mobile.coffeemasters.ui.theme.Alternative2
 import app.itmaster.mobile.coffeemasters.ui.theme.Alternative3
@@ -55,12 +56,15 @@ fun OrderPage(dataManager: DataManager) {
                     }
                     itemsIndexed(dataManager.cart) { index, item ->
                         OrderDetail(
+                            product = item.product,
                             quantity = item.quantity,
-                            name = item.product.name,
+                            productName = item.product.name,
                             price = item.product.price,
-                            showDivider = index < dataManager.cart.size - 1
+                            showDivider = index < dataManager.cart.size - 1,
+                            onRemove = { product -> dataManager.cartRemove(product) }
                         )
                     }
+
                 }
             }
         }
@@ -91,7 +95,14 @@ fun OrderPage(dataManager: DataManager) {
 
 
 @Composable
-fun OrderDetail(quantity: Int, name: String, price: Double, showDivider: Boolean) {
+fun OrderDetail(
+    product: Product,
+    quantity: Int,
+    productName: String,
+    price: Double,
+    showDivider: Boolean,
+    onRemove: (Product) -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -105,7 +116,7 @@ fun OrderDetail(quantity: Int, name: String, price: Double, showDivider: Boolean
         )
         Spacer(Modifier.width(16.dp))
         Text(
-            text = name, modifier = Modifier
+            text = productName, modifier = Modifier
                 .align(Alignment.CenterVertically)
                 .weight(1f)
         )
@@ -114,7 +125,8 @@ fun OrderDetail(quantity: Int, name: String, price: Double, showDivider: Boolean
             modifier = Modifier.align(Alignment.CenterVertically)
         )
         IconButton(
-            onClick = { /*TODO*/ }, modifier = Modifier.align(Alignment.CenterVertically)
+            onClick = { onRemove(product) },
+            modifier = Modifier.align(Alignment.CenterVertically)
         ) {
             Icon(
                 imageVector = Icons.Outlined.Delete,
