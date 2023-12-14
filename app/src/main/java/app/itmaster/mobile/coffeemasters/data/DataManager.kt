@@ -53,4 +53,8 @@ class DataManager : ViewModel() {
         }
     }
 
+    fun clearCart() {
+        cart = listOf()
+    }
+
 }

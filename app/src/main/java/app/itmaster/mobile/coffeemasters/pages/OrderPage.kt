@@ -1,6 +1,7 @@
 package app.itmaster.mobile.coffeemasters.pages
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,10 +11,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,10 +26,15 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,54 +47,77 @@ import app.itmaster.mobile.coffeemasters.ui.theme.Alternative3
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrderPage(dataManager: DataManager) {
-    Column {
-        OrderPageBox {
-            if (dataManager.cart.isEmpty()) {
-                Text(
-                    text = "No items have been added yet",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    color = Alternative1
-                )
-            } else {
-                LazyColumn {
-                    item {
-                        OrderPageBoxTitle("ITEMS")
-                    }
-                    itemsIndexed(dataManager.cart) { index, item ->
-                        OrderDetail(
-                            product = item.product,
-                            quantity = item.quantity,
-                            productName = item.product.name,
-                            price = item.product.price,
-                            showDivider = index < dataManager.cart.size - 1,
-                            onRemove = { product -> dataManager.cartRemove(product) }
-                        )
-                    }
+    var clientName by remember { mutableStateOf("") }
 
+    LazyColumn {
+        if (dataManager.cart.isNotEmpty()) {
+            item {
+                OrderPageBox {
+                    OrderPageBoxTitle("ITEMS")
                 }
             }
-        }
-
-        if (dataManager.cart.isNotEmpty()) {
-            OrderPageBox {
-                Column {
-                    OrderPageBoxTitle("NAME")
-                    OutlinedTextField(
-                        value = "",
-                        onValueChange = {/* TODO */ },
-                        label = { Text("Name for order", color = Alternative1) },
-                        shape = RoundedCornerShape(24.dp),
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = Alternative1,
-                            unfocusedBorderColor = Alternative1
-
-                        ),
+            itemsIndexed(dataManager.cart) { index, item ->
+                OrderDetail(
+                    product = item.product,
+                    quantity = item.quantity,
+                    productName = item.product.name,
+                    price = item.product.price,
+                    showDivider = index < dataManager.cart.size - 1,
+                    onRemove = { product -> dataManager.cartRemove(product) }
+                )
+            }
+            item {
+                OrderPageBox {
+                    Column {
+                        OrderPageBoxTitle("NAME")
+                        OutlinedTextField(
+                            value = clientName,
+                            onValueChange = { clientName = it },
+                            label = { Text("Name for order", color = Alternative1) },
+                            shape = RoundedCornerShape(24.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                focusedBorderColor = Alternative1,
+                                unfocusedBorderColor = Alternative1
+                            ),
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth()
+                        )
+                    }
+                }
+                if (clientName != "") {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Spacer(Modifier.weight(1f))
+                        Button(
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Alternative1,
+                                contentColor = Color.White
+                            ),
+                            onClick = {
+                                dataManager.clearCart()
+                            }
+                        ) {
+                            Text("Order")
+                        }
+                    }
+                }
+            }
+        } else {
+            item {
+                OrderPageBox {
+                    Text(
+                        text = "No items have been added yet",
+                        textAlign = TextAlign.Center,
                         modifier = Modifier
                             .padding(16.dp)
-                            .fillMaxWidth()
+                            .fillMaxWidth(),
+                        color = Alternative1
                     )
                 }
             }
@@ -166,4 +198,17 @@ fun OrderPageBoxTitle(title: String) {
         modifier = Modifier.padding(16.dp),
         color = Alternative1
     )
+}
+
+fun LazyListScope.cartList(dataManager: DataManager) {
+    itemsIndexed(dataManager.cart) { index, item ->
+        OrderDetail(
+            product = item.product,
+            quantity = item.quantity,
+            productName = item.product.name,
+            price = item.product.price,
+            showDivider = index < dataManager.cart.size - 1,
+            onRemove = { product -> dataManager.cartRemove(product) }
+        )
+    }
 }
