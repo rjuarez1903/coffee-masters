@@ -1,5 +1,6 @@
 package app.itmaster.mobile.coffeemasters.pages
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,8 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
@@ -23,12 +22,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,88 +46,111 @@ import app.itmaster.mobile.coffeemasters.data.Product
 import app.itmaster.mobile.coffeemasters.ui.theme.Alternative1
 import app.itmaster.mobile.coffeemasters.ui.theme.Alternative2
 import app.itmaster.mobile.coffeemasters.ui.theme.Alternative3
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun OrderPage(dataManager: DataManager) {
     var clientName by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    LazyColumn {
-        if (dataManager.cart.isNotEmpty()) {
-            item {
-                OrderPageBox {
-                    OrderPageBoxTitle("ITEMS")
-                }
-            }
-            itemsIndexed(dataManager.cart) { index, item ->
-                OrderDetail(
-                    product = item.product,
-                    quantity = item.quantity,
-                    productName = item.product.name,
-                    price = item.product.price,
-                    showDivider = index < dataManager.cart.size - 1,
-                    onRemove = { product -> dataManager.cartRemove(product) }
-                )
-            }
-            item {
-                OrderPageBox {
-                    Column {
-                        OrderPageBoxTitle("NAME")
-                        OutlinedTextField(
-                            value = clientName,
-                            onValueChange = { clientName = it },
-                            label = { Text("Name for order", color = Alternative1) },
-                            shape = RoundedCornerShape(24.dp),
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                focusedBorderColor = Alternative1,
-                                unfocusedBorderColor = Alternative1
-                            ),
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth()
-                        )
-                    }
-                }
-                if (clientName != "") {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Spacer(Modifier.weight(1f))
-                        Button(
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Alternative1,
-                                contentColor = Color.White
-                            ),
-                            onClick = {
-                                dataManager.clearCart()
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) {
+        LazyColumn {
+            if (dataManager.cart.isNotEmpty()) {
+                item {
+                    OrderPageBox {
+                        Column {
+                            OrderPageBoxTitle("ITEMS")
+                            Column {
+                                dataManager.cart.forEachIndexed { index, item ->
+                                    run {
+                                        OrderDetail(
+                                            product = item.product,
+                                            quantity = item.quantity,
+                                            productName = item.product.name,
+                                            price = item.product.price,
+                                            showDivider = index < dataManager.cart.size - 1,
+                                            onRemove = { product -> dataManager.cartRemove(product) }
+                                        )
+                                    }
+                                }
                             }
-                        ) {
-                            Text("Order")
                         }
                     }
                 }
-            }
-        } else {
-            item {
-                OrderPageBox {
-                    Text(
-                        text = "No items have been added yet",
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                        color = Alternative1
-                    )
+                item {
+                    OrderPageBox {
+                        Column {
+                            OrderPageBoxTitle("NAME")
+                            OutlinedTextField(
+                                value = clientName,
+                                onValueChange = { clientName = it },
+                                label = { Text("Name for order", color = Alternative1) },
+                                shape = RoundedCornerShape(24.dp),
+                                colors = TextFieldDefaults.outlinedTextFieldColors(
+                                    focusedBorderColor = Alternative1,
+                                    unfocusedBorderColor = Alternative1
+                                ),
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth()
+                            )
+                        }
+                    }
+                    if (clientName != "") {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Spacer(Modifier.weight(1f))
+                            Button(
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Alternative1,
+                                    contentColor = Color.White
+                                ),
+                                onClick = {
+                                    handleOrderClick(
+                                        dataManager,
+                                        coroutineScope,
+                                        snackbarHostState
+                                    )
+                                }
+                            ) {
+                                Text("Order")
+                            }
+                        }
+                        SnackbarHost(
+                            hostState = snackbarHostState,
+                        )
+
+                    }
+                }
+            } else {
+                item {
+                    OrderPageBox {
+                        Text(
+                            text = "No items have been added yet",
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            color = Alternative1
+                        )
+                    }
                 }
             }
         }
     }
 }
-
 
 @Composable
 fun OrderDetail(
@@ -177,6 +203,17 @@ fun OrderDetail(
     }
 }
 
+fun handleOrderClick(
+    dataManager: DataManager,
+    coroutineScope: CoroutineScope,
+    snackbarHostState: SnackbarHostState
+) {
+    dataManager.clearCart()
+    coroutineScope.launch {
+        snackbarHostState.showSnackbar("Your order will be ready soon!")
+    }
+}
+
 @Composable
 fun OrderPageBox(content: @Composable () -> Unit) {
     Box(
@@ -198,17 +235,4 @@ fun OrderPageBoxTitle(title: String) {
         modifier = Modifier.padding(16.dp),
         color = Alternative1
     )
-}
-
-fun LazyListScope.cartList(dataManager: DataManager) {
-    itemsIndexed(dataManager.cart) { index, item ->
-        OrderDetail(
-            product = item.product,
-            quantity = item.quantity,
-            productName = item.product.name,
-            price = item.product.price,
-            showDivider = index < dataManager.cart.size - 1,
-            onRemove = { product -> dataManager.cartRemove(product) }
-        )
-    }
 }
