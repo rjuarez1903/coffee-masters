@@ -6,14 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
 import app.itmaster.mobile.coffeemasters.data.DataManager
-import app.itmaster.mobile.coffeemasters.data.Product
-import app.itmaster.mobile.coffeemasters.pages.OffersPage
 import app.itmaster.mobile.coffeemasters.ui.theme.CoffeeMastersTheme
 
 class MainActivity : ComponentActivity() {
