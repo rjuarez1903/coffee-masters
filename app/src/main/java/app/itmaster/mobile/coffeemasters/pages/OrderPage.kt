@@ -1,6 +1,8 @@
 package app.itmaster.mobile.coffeemasters.pages
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,13 +51,18 @@ import app.itmaster.mobile.coffeemasters.ui.theme.Alternative2
 import app.itmaster.mobile.coffeemasters.ui.theme.Alternative3
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun OrderPage(dataManager: DataManager) {
-    var clientName by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("user_preferences", Context.MODE_PRIVATE)
+    var clientName by remember {
+        mutableStateOf(prefs.getString("clientName", "") ?: "")
+    }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -118,10 +126,12 @@ fun OrderPage(dataManager: DataManager) {
                                     contentColor = Color.White
                                 ),
                                 onClick = {
-                                    handleOrderClick(
+                                    onOrderPlaced(
                                         dataManager,
                                         coroutineScope,
-                                        snackbarHostState
+                                        snackbarHostState,
+                                        prefs,
+                                        clientName
                                     )
                                 }
                             ) {
@@ -203,17 +213,6 @@ fun OrderDetail(
     }
 }
 
-fun handleOrderClick(
-    dataManager: DataManager,
-    coroutineScope: CoroutineScope,
-    snackbarHostState: SnackbarHostState
-) {
-    dataManager.clearCart()
-    coroutineScope.launch {
-        snackbarHostState.showSnackbar("Your order will be ready soon!")
-    }
-}
-
 @Composable
 fun OrderPageBox(content: @Composable () -> Unit) {
     Box(
@@ -235,4 +234,23 @@ fun OrderPageBoxTitle(title: String) {
         modifier = Modifier.padding(16.dp),
         color = Alternative1
     )
+}
+
+fun onOrderPlaced(
+    dataManager: DataManager,
+    coroutineScope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    prefs: SharedPreferences,
+    clientName: String
+) {
+    prefs.edit().putString("clientName", clientName).apply()
+    dataManager.clearCart()
+    coroutineScope.launch {
+        snackbarHostState.showSnackbar("Your order will be ready soon! #${generateRandomOrder()}")
+    }
+}
+
+fun generateRandomOrder(): String {
+    val orderNumber = Random.nextInt(100, 1000)
+    return orderNumber.toString()
 }
