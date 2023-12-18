@@ -23,6 +23,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -44,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.itmaster.mobile.coffeemasters.composables.CustomSnackbarHost
 import app.itmaster.mobile.coffeemasters.data.DataManager
 import app.itmaster.mobile.coffeemasters.data.Product
 import app.itmaster.mobile.coffeemasters.ui.theme.Alternative1
@@ -67,7 +69,7 @@ fun OrderPage(dataManager: DataManager) {
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { CustomSnackbarHost(snackbarHostState) }
     ) {
         LazyColumn {
             if (dataManager.cart.isNotEmpty()) {
@@ -246,7 +248,10 @@ fun onOrderPlaced(
     prefs.edit().putString("clientName", clientName).apply()
     dataManager.clearCart()
     coroutineScope.launch {
-        snackbarHostState.showSnackbar("Your order will be ready soon! #${generateRandomOrder()}")
+        snackbarHostState.showSnackbar(
+            "Your order will be ready soon! #${generateRandomOrder()}",
+            actionLabel = "CLOSE"
+        )
     }
 }
 

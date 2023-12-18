@@ -8,13 +8,13 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.viewinterop.AndroidView
 import app.itmaster.mobile.coffeemasters.JSInterface
+import app.itmaster.mobile.coffeemasters.composables.CustomSnackbarHost
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,7 +25,7 @@ fun InfoPage() {
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { CustomSnackbarHost(snackbarHostState) }
     ) {
         AndroidView(
             factory = {
@@ -61,3 +61,4 @@ fun InfoPage() {
         )
     }
 }
+
